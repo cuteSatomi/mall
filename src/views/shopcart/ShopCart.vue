@@ -1,5 +1,5 @@
 <template>
-  <h2>ShopCart</h2>
+  <img width="100%" src="~assets/img/tuanzhang.jpg">
 </template>
 
 <script>
