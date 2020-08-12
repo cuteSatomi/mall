@@ -1,5 +1,5 @@
 <template>
-  <div class="div">
+  <div class="goods">
     <goods-item v-for="item in goods" :goods-item="item"/>
   </div>
 </template>
@@ -24,5 +24,10 @@
 </script>
 
 <style scoped>
-
+  /*设置一行显示多个goods-item*/
+  .goods{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+  }
 </style>
