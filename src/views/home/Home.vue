@@ -3,30 +3,39 @@
     <nav-bar class="home-nav">
       <div slot="center-nav-bar">购物该</div>
     </nav-bar>
-    <!--轮播图-->
-    <home-swiper :banners="banners"></home-swiper>
-    <!--首页推荐-->
-    <home-recommend :recommends="recommends"/>
-    <!--本周流行-->
-    <feature-view/>
+    <scroll class="content"
+            ref="scroll"
+            :probe-type="3"
+            @scrollPosition="contentScroll"
+            :pull-up-load="true">
+      <!--轮播图-->
+      <home-swiper :banners="banners"></home-swiper>
+      <!--首页推荐-->
+      <home-recommend :recommends="recommends"/>
+      <!--本周流行-->
+      <feature-view/>
+      <tab-control class="tab-control" :titles="['流行','新款','精选']"
+                   @tabClick="tabClick"/>
+      <!--商品的展示-->
+      <goods :goods="showGoods"/>
 
-    <tab-control class="tab-control" :titles="['流行','新款','精选']"
-                 @tabClick="tabClick"/>
+    </scroll>
 
-    <!--商品的展示-->
-    <goods :goods="showGoods"/>
+    <!--返回顶部组件-->
+    <back-top @click.native="backTopClick" v-show="isBackTopShow"/>
 
-    <img width="100%" src="~assets/img/tuanzhang.jpg">
   </div>
 </template>
 
 <script>
   import NavBar from "../../components/common/navbar/NavBar";
-  import HomeSwiper from "./childComps/HomeSwiper";
-  import HomeRecommend from "./childComps/HomeRecommend";
-  import FeatureView from "./childComps/FeatureView";
-  import TabControl from "../../components/content/tabControl/TabControl";
+  import HomeSwiper from "./childcomps/HomeSwiper";
+  import HomeRecommend from "./childcomps/HomeRecommend";
+  import FeatureView from "./childcomps/FeatureView";
+  import TabControl from "../../components/content/tabcontrol/TabControl";
   import Goods from "../../components/content/goods/Goods";
+  import Scroll from "../../components/common/scroll/Scroll";
+  import BackTop from "../../components/content/backtop/BackTop";
 
   import {getHomeMultiData, getHomeGoods} from "../../network/home";
 
@@ -38,7 +47,9 @@
       HomeRecommend,
       FeatureView,
       TabControl,
-      Goods
+      Goods,
+      Scroll,
+      BackTop
     },
     data() {
       return {
@@ -87,12 +98,13 @@
           'new': {page: 0, list: []},
           'sell': {page: 0, list: []},
         },
-        currentType: 'pop'
+        currentType: 'pop',
+        isBackTopShow: false,
       }
     },
-    computed:{
-      showGoods(){
-       return this.goods[this.currentType].list;
+    computed: {
+      showGoods() {
+        return this.goods[this.currentType].list;
       }
     },
     created() {
@@ -103,6 +115,14 @@
       this.getHomeGoods('pop');
       this.getHomeGoods('new');
       this.getHomeGoods('sell');
+    },
+    mounted() {
+      const refresh =this.debounce(this.$refs.scroll.refresh,200);
+      //监听item中图片加载完成
+      this.$bus.$on('itemImageLoad', () => {
+        //图片加载完成刷新一次scrollHeight
+        refresh();
+      });
     },
     methods: {
 
@@ -124,7 +144,22 @@
             break;
         }
       },
-
+      backTopClick() {
+        this.$refs.scroll.scrollTo(0, 0, 500);
+      },
+      contentScroll(position) {
+        this.isBackTopShow = (-position.y) > 1000;
+      },
+      //防抖函数
+      debounce(func, delay) {
+        let timer = null;
+        return function (...args) {
+          if (timer) clearTimeout(timer);
+          timer = setTimeout(() => {
+            func.apply(this, args);
+          }, delay);
+        };
+      },
 
       /**
        * 网络请求相关方法
@@ -141,7 +176,6 @@
       getHomeGoods(type) {
         const page = this.goods[type].page + 1;
         getHomeGoods(type, page).then(res => {
-          console.log(res);
           //将新请求到的商品数据塞到data中
           this.goods[type].list.push(...res.data.list);
           //将data中相应type的page加1
@@ -155,7 +189,9 @@
 <style scoped>
 
   #home {
-    padding-top: 44px;
+    /*padding-top: 44px;*/
+    height: 100vh;
+    position: relative;
   }
 
   .home-nav {
@@ -171,8 +207,25 @@
 
   /*给首页的tabControl添加悬停功能*/
   .tab-control {
-    position: sticky;
+    /*position: sticky;*/
     top: 44px;
-    z-index: 9;
+    z-index: 8;
+    margin-bottom: 6px;
   }
+
+  .content {
+    overflow: hidden;
+
+    position: absolute;
+    top: 44px;
+    bottom: 49px;
+    left: 0;
+    right: 0;
+  }
+
+  /*  .content{
+      height: calc(100% - 93px);
+      overflow: hidden;
+      margin-top: 44px;
+    }*/
 </style>
