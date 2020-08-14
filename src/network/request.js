@@ -1,9 +1,10 @@
 import axios from 'axios';
+import {baseURL} from './requestconfig/zzx'
 
 export function request(config) {
   //1.创建axios的实例
   const instance = axios.create({
-    baseURL: 'http://152.136.185.210:8000/api/z8',
+    baseURL: baseURL,
     timeout: 5000,
   });
 

@@ -2,6 +2,8 @@
 node_modules
 /dist
 
+# 接口路径
+src/network/requestconfig
 
 # local env files
 .env.local

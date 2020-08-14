@@ -7,15 +7,17 @@
             ref="scroll"
             :probe-type="3"
             @scrollPosition="contentScroll"
-            :pull-up-load="true">
+            :pull-up-load="true"
+            @pullingUp="loadMoreGoods">
       <!--轮播图-->
       <home-swiper :banners="banners"></home-swiper>
       <!--首页推荐-->
       <home-recommend :recommends="recommends"/>
       <!--本周流行-->
       <feature-view/>
-      <tab-control class="tab-control" :titles="['流行','新款','精选']"
-                   @tabClick="tabClick"/>
+      <tab-control :titles="['流行','新款','精选']"
+                   @tabClick="tabClick"
+                   ref="tabControl"/>
       <!--商品的展示-->
       <goods :goods="showGoods"/>
 
@@ -38,6 +40,7 @@
   import BackTop from "../../components/content/backtop/BackTop";
 
   import {getHomeMultiData, getHomeGoods} from "../../network/home";
+  import {debounce} from "../../common/utils";
 
   export default {
     name: "Home",
@@ -100,6 +103,7 @@
         },
         currentType: 'pop',
         isBackTopShow: false,
+        tabOffsetTop: 0,
       }
     },
     computed: {
@@ -117,12 +121,16 @@
       this.getHomeGoods('sell');
     },
     mounted() {
-      const refresh =this.debounce(this.$refs.scroll.refresh,200);
+      //图片加载完成的事件监听
+      const refresh = debounce(this.$refs.scroll.refresh, 200);
       //监听item中图片加载完成
       this.$bus.$on('itemImageLoad', () => {
         //图片加载完成刷新一次scrollHeight
         refresh();
       });
+
+      //获取tabControl的offsetTop
+      console.log(this.$refs.tabControl.$el.offsetTop);
     },
     methods: {
 
@@ -150,15 +158,8 @@
       contentScroll(position) {
         this.isBackTopShow = (-position.y) > 1000;
       },
-      //防抖函数
-      debounce(func, delay) {
-        let timer = null;
-        return function (...args) {
-          if (timer) clearTimeout(timer);
-          timer = setTimeout(() => {
-            func.apply(this, args);
-          }, delay);
-        };
+      loadMoreGoods() {
+        this.getHomeGoods(this.currentType);
       },
 
       /**
@@ -180,6 +181,9 @@
           this.goods[type].list.push(...res.data.list);
           //将data中相应type的page加1
           this.goods[type].list.page++;
+
+          //请求完一次加载更多之后执行finishPullUp
+          this.$refs.scroll.finishPullUp();
         });
       },
     }
@@ -205,13 +209,13 @@
     z-index: 9;
   }
 
-  /*给首页的tabControl添加悬停功能*/
-  .tab-control {
-    /*position: sticky;*/
-    top: 44px;
-    z-index: 8;
-    margin-bottom: 6px;
-  }
+  /*  !*给首页的tabControl添加悬停功能*!
+    .tab-control {
+      !*position: sticky;*!
+      top: 44px;
+      z-index: 8;
+      margin-bottom: 6px;
+    }*/
 
   .content {
     overflow: hidden;
