@@ -2,8 +2,8 @@
 node_modules
 /dist
 
-# 接口路径
-src/network/requestconfig
+# 接口配置文件
+src/network/requestconfig/zzx.js
 
 # local env files
 .env.local
