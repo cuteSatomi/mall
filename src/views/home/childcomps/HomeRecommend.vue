@@ -18,8 +18,8 @@
         default() {
           return [];
         }
-      }
-    }
+      },
+    },
   }
 </script>
 
@@ -34,7 +34,7 @@
     border-bottom: 6px solid #eee;
   }
 
-  .recommend-item{
+  .recommend-item {
     flex: 1;
   }
 

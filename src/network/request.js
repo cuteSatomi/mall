@@ -1,10 +1,10 @@
 import axios from 'axios';
-import {baseURL} from './requestconfig/zzx'
+import {BASEURL} from './requestconfig/zzx'
 
 export function request(config) {
   //1.创建axios的实例
   const instance = axios.create({
-    baseURL: baseURL,
+    baseURL: BASEURL,
     timeout: 5000,
   });
 

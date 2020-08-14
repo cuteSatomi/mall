@@ -3,6 +3,10 @@
     <nav-bar class="home-nav">
       <div slot="center-nav-bar">购物该</div>
     </nav-bar>
+    <tab-control :titles="['流行','新款','精选']"
+                 @tabClick="tabClick"
+                 ref="tabControl1"
+                 class="tab-control" v-show="isTabFixed"/>
     <scroll class="content"
             ref="scroll"
             :probe-type="3"
@@ -10,14 +14,14 @@
             :pull-up-load="true"
             @pullingUp="loadMoreGoods">
       <!--轮播图-->
-      <home-swiper :banners="banners"></home-swiper>
+      <home-swiper :banners="banners"/>
       <!--首页推荐-->
       <home-recommend :recommends="recommends"/>
       <!--本周流行-->
-      <feature-view/>
+      <feature-view @featureViewLoad="featureViewLoad"/>
       <tab-control :titles="['流行','新款','精选']"
                    @tabClick="tabClick"
-                   ref="tabControl"/>
+                   ref="tabControl2"/>
       <!--商品的展示-->
       <goods :goods="showGoods"/>
 
@@ -103,7 +107,10 @@
         },
         currentType: 'pop',
         isBackTopShow: false,
+        isFeatureViewLoad: false,
         tabOffsetTop: 0,
+        isTabFixed: false,
+        saveY: 0,
       }
     },
     computed: {
@@ -128,9 +135,13 @@
         //图片加载完成刷新一次scrollHeight
         refresh();
       });
-
-      //获取tabControl的offsetTop
-      console.log(this.$refs.tabControl.$el.offsetTop);
+    },
+    activated() {
+      this.$refs.scroll.refresh();
+      this.$refs.scroll.scrollTo(0, this.saveY, 0);
+    },
+    deactivated() {
+      this.saveY = this.$refs.scroll.getScrollY();
     },
     methods: {
 
@@ -151,15 +162,38 @@
           default:
             break;
         }
+        this.$refs.tabControl1.currentIndex = index;
+        this.$refs.tabControl2.currentIndex = index;
       },
       backTopClick() {
         this.$refs.scroll.scrollTo(0, 0, 500);
       },
       contentScroll(position) {
+        //1。判断BackTop组件是否显示
         this.isBackTopShow = (-position.y) > 1000;
+
+        //2。决定tabControl是否吸顶(position: fixed)
+        this.isTabFixed = (-position.y) > this.tabOffsetTop;
       },
       loadMoreGoods() {
         this.getHomeGoods(this.currentType);
+      },
+      //swiper中的图片是否加载完成
+      //当HomeSwiper和FeatureView组件中的图片加载完成后得到tabControl的offsetTop
+      //这里不知道怎么处理，总有一个组件没加载出来不知道是哪个，所以就先在上面把tabOffsetTop写死成588(iphone 6/7/8)
+      /*swiperImageLoad() {
+        console.log(this.$refs.tabControl2.$el.offsetTop);
+        //this.tabOffsetTop = this.$refs.tabControl2.$el.offsetTop;
+        this.isSwiperImageLoad = true;
+      },
+      recommendImgLoad() {
+        console.log(this.$refs.tabControl2.$el.offsetTop);
+        //this.tabOffsetTop = this.$refs.tabControl2.$el.offsetTop;
+        this.isRecommendImgLoad = true;
+      },*/
+      //多次调试发现由于轮播图和推荐使用的是本地图片，所以featureView组件中的图片才是最后加载的，只需监听这一个imageLoad即可
+      featureViewLoad() {
+        this.tabOffsetTop = this.$refs.tabControl2.$el.offsetTop;
       },
 
       /**
@@ -202,11 +236,12 @@
     background-color: var(--color-tint);
     color: white;
 
-    position: fixed;
+    /*在使用浏览器原生滚动时，为了让导航不跟随一起滚动*/
+    /*position: fixed;
     left: 0;
     right: 0;
     top: 0;
-    z-index: 9;
+    z-index: 9;*/
   }
 
   /*  !*给首页的tabControl添加悬停功能*!
@@ -225,6 +260,11 @@
     bottom: 49px;
     left: 0;
     right: 0;
+  }
+
+  .tab-control {
+    position: relative;
+    z-index: 9;
   }
 
   /*  .content{
