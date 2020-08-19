@@ -29,11 +29,12 @@
         currentIndex: 0,
       }
     },
-    methods:{
-      titleClick(index){
+    methods: {
+      titleClick(index) {
         this.currentIndex = index;
+        this.$emit("titleClick",index);
       },
-      backClick(){
+      backClick() {
         this.$router.back();
       }
     }
@@ -55,11 +56,11 @@
     font-weight: bolder;
   }
 
-  .back{
+  .back {
     margin-top: 5px;
   }
 
-  .back img{
+  .back img {
     width: 35px;
     height: 35px;
   }

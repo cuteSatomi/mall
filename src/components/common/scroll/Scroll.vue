@@ -38,7 +38,7 @@
       });
 
       //2。监听滚动位置
-      if (this.probeType == 2 || this.probeType == 3) {
+      if (this.probeType === 2 || this.probeType === 3) {
         this.scroll.on('scroll', position => {
           //将滚动位置传出
           this.$emit('scrollPosition', position);

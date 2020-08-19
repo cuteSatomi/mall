@@ -19,7 +19,7 @@
 <style>
   @import "./assets/css/base.css";
 
-  .main-tab-bar{
-    z-index: 9;
+  #app {
+    position: relative;
   }
 </style>
