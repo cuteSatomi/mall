@@ -1,7 +1,7 @@
 <template>
   <div id="detail">
-    <detail-nav-bar class="detail-nav" @titleClick="titleClick"/>
-    <scroll class="content" ref="scroll">
+    <detail-nav-bar class="detail-nav" ref="nav" @titleClick="titleClick"/>
+    <scroll class="content" ref="scroll" :probeType="3" @scrollPosition="contentScroll">
       <detail-swiper :top-images="topImages"/>
       <detail-base-info :goods="goods"/>
       <detail-shop-info :shop="shop"/>
@@ -10,6 +10,7 @@
       <detail-comment-info ref="comment" :commentInfo="commentInfo"/>
       <goods-list ref="recommend" :goods="recommends"/>
     </scroll>
+    <detail-bottom-bar @addToCart="addToCart"/>
 
     <img width="100%" src="../../assets/img/tuanzhang.jpg">
   </div>
@@ -24,6 +25,7 @@
   import DetailParamInfo from "./childcomps/DetailParamInfo";
   import DetailCommentInfo from "./childcomps/DetailCommentInfo";
   import GoodsList from "../../components/content/goods/Goods";
+  import DetailBottomBar from "./childcomps/DetailBottomBar";
 
   import Scroll from "../../components/common/scroll/Scroll";
 
@@ -41,6 +43,7 @@
       DetailParamInfo,
       DetailCommentInfo,
       GoodsList,
+      DetailBottomBar
     },
     data() {
       return {
@@ -54,6 +57,7 @@
         commentInfo: {},
         recommends: [],
         themeTopYs: [],
+        currentIndex: 0,
       }
     },
     created() {
@@ -98,10 +102,34 @@
         this.themeTopYs.push(this.$refs.param.$el.offsetTop);
         this.themeTopYs.push(this.$refs.comment.$el.offsetTop);
         this.themeTopYs.push(this.$refs.recommend.$el.offsetTop);
-        console.log(this.themeTopYs);
       },
       titleClick(index) {
         this.$refs.scroll.scrollTo(0, -this.themeTopYs[index], 300);
+      },
+      contentScroll(position) {
+        //获取Y值
+        const positionY = -position.y;
+
+        let length = this.themeTopYs.length;
+        for (let index = 0; index < length; index++) {
+          if (this.currentIndex !== index && ((index < length - 1 && positionY >= this.themeTopYs[index] && positionY < this.themeTopYs[index + 1])
+            || (index === length - 1 && positionY >= this.themeTopYs[index]))) {
+            this.currentIndex = index;
+            this.$refs.nav.currentIndex = this.currentIndex;
+          }
+        }
+      },
+
+      addToCart(){
+        const product = {};
+        product.image = this.topImages[0];
+        product.title = this.goods.title;
+        product.desc = this.goods.desc;
+        product.price = this.goods.realPrice;
+        product.iid = this.iid;
+
+        // this.$store.commit("addToCart",product);
+        this.$store.dispatch("addToCart",product);
       }
     }
   }
@@ -123,6 +151,6 @@
   }
 
   .content {
-    height: calc(100% - 44px);
+    height: calc(100% - 44px - 49px);
   }
 </style>
